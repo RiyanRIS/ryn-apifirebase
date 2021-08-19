@@ -5,8 +5,15 @@ const { Client } = require('whatsapp-web.js');
 const config = require('../config');
 const { phoneNumberFormatter } = require('../helpers/formatter');
 
+const puppeteerOptions = {
+  headless: true,
+  args: ["--no-sandbox"],
+};
+
 let sessionData = JSON.parse(config.wa_sessionid);
+
 const client = new Client({
+  puppeteer: puppeteerOptions,
   session: sessionData
 });
 
