@@ -10,16 +10,28 @@ const client = new Client({
   session: sessionData
 });
 
+client.on('authenticated', (session) => {
+  console.log("Whatsapp is authenticated!");
+});
+
+client.on('ready', () => {
+  console.log("Client is ready!");
+});
+
 const cek = (req, res, next) => {
   const key = req.headers.key
 
   if(key == config.key){
-    // client.on('ready', () => {
-    //   res.send("Client is ready!");
-    // });
+
     client.on('authenticated', (session) => {
-      res.status(200).send("Whatsapp is authenticated!");
+      console.log("Whatsapp is authenticated!");
     });
+
+    client.on('ready', () => {
+      console.log("Client is ready!");
+    });
+
+    res.status(200).send("Done, check your server's console.");
   } else {
     res.status(401).json({
       status: false,
