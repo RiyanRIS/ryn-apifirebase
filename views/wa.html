@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="riyanris">
-    <title>Docs| Rest Api Whatsapp</title>
+    <title>WA| Rest Api Whatsapp</title>
 
     <!-- Bootstrap core CSS -->
 <link href="https://getbootstrap.com/docs/5.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
@@ -42,32 +42,46 @@
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav me-auto mb-2 mb-md-0">
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="/">Home</a>
+            <a class="nav-link active" href="/">Home</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/wa">WhatsApp</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/user">User</a>
+            <a class="nav-link" href="/quote">Quote</a>
           </li>
            <li class="nav-item">
-            <a class="nav-link" href="/chat">Chat</a>
+            <a class="nav-link" href="/user">User</a>
           </li>
         </ul>
-        <!-- <form class="d-flex">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-success" type="submit">Search</button>
-        </form> -->
       </div>
     </div>
   </nav>
 </header>
 
+
 <!-- Begin page content -->
 <main class="flex-shrink-0">
   <div class="container">
-    <h1 class="mt-5">Model Chat....</h1>
-    <p>Belum Bro.. Tunggu ya....</p>
+    <h1 class="mt-5">Whatsapp...</h1>
+    <p>Jangan lupa pake {key} pada header...</p>
+    <table class="table table-bordered table-small">
+      <tr>
+        <th>METHOD</th>
+        <th>URL</th>
+        <th>PARAM</th>
+      </tr>
+      <tr>
+        <td>GET</td>
+        <td>/wa/cek</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>POST</td>
+        <td>/wa/send</td>
+        <td>number, message</td>
+      </tr>
+    </table>
   </div>
 </main>
 

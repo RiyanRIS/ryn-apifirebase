@@ -8,6 +8,8 @@ const {
     PORT,
     HOST,
     HOST_URL,
+    KEY,
+    WA_SESSIONID,
     API_KEY,
     AUTH_DOMAIN,
     DATABASE_URL,
@@ -24,6 +26,8 @@ module.exports = {
     port: PORT,
     host: HOST,
     url: HOST_URL,
+    wa_sessionid: WA_SESSIONID,
+    key: KEY,
     firebaseConfig: {
         apiKey: API_KEY,
         authDomain: AUTH_DOMAIN,
