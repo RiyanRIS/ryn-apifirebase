@@ -1,6 +1,7 @@
 'use strict';
 
 const { Client } = require('whatsapp-web.js');
+const axios = require('axios');
 
 const config = require('../config');
 const { phoneNumberFormatter } = require('../helpers/formatter');
@@ -23,6 +24,10 @@ client.on('authenticated', (session) => {
 
 client.on('ready', () => {
   console.log("Client is ready!");
+});
+
+client.on('message', msg => {
+  axios.post(config.webhook_url, { msg })
 });
 
 const cek = (req, res, next) => {

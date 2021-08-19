@@ -10,6 +10,7 @@ const {
     HOST_URL,
     KEY,
     WA_SESSIONID,
+    WEBHOOK_URL,
     API_KEY,
     AUTH_DOMAIN,
     DATABASE_URL,
@@ -27,6 +28,7 @@ module.exports = {
     host: HOST,
     url: HOST_URL,
     wa_sessionid: WA_SESSIONID,
+    webhook_url: WEBHOOK_URL,
     key: KEY,
     firebaseConfig: {
         apiKey: API_KEY,
