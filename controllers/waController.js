@@ -54,7 +54,8 @@ const send = async (req, res, next) => {
     }).catch(err => {
       res.status(500).json({
         status: false,
-        response: err
+        response: err,
+        asu: ["Lha kok error"]
       });
     });
   }else{
