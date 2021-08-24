@@ -1,0 +1,64 @@
+{
+  "name": "Riyanbot",
+  "description": "helo Desc",
+  "repository": "https://github.com/RiyanRIS/ryn-apifirebase",
+  "logo": "https://avatars.githubusercontent.com/u/28080686",
+  "keywords": [
+    "whatsbot",
+    "whatsapp-userbot",
+    "whatsapp-bot",
+    "whatsapp-userbot",
+    "whatsapp"
+  ],
+  "stack": "container",
+  "env": {
+    "WA_SESSIONID": {
+      "description": "Puppeteer Session. Get it by running genToken.js",
+      "value": ""
+    },
+    "WEBHOOK_URL": {
+      "description": "Puppeteer Session. Get it by running genToken.js",
+      "value": ""
+    },
+    "HOST": {
+      "description": "Enable Pmpermit write true or false only",
+      "value": ""
+    },
+    "PORT": {
+      "description": "Enable Pmpermit write true or false only",
+      "value": "8080"
+    },
+    "HOST_URL": {
+      "description": "MongoDB URL, Get it for free from cloud.mongodb.com",
+      "value": ""
+    },
+    "API_KEY": {
+      "description": "How many seconds an user get muted if he is spamming. Default is 30 Minutes (1800 Secs)",
+      "value": ""
+    },
+    "AUTH_DOMAIN": {
+      "description": "Youtube DATA API key, grab it from cloud.google.com",
+      "value": ""
+    },
+    "DATABASE_URL": {
+      "description": "Default Translation Language",
+      "value": ""
+    },
+    "PROJECT_ID": {
+      "description": "If true & if someone delete message in PM, Bot will send the deleted message in that chat (Exclude Media)",
+      "value": ""
+    },
+    "STORAGE_BUCKET": {
+      "description": "Get it from https://ocr.space/OCRAPI",
+      "value": ""
+    },
+    "MESSAGING_SENDER_ID": {
+      "description": "Get it from https://infospace.club",
+      "value": ""
+    },
+    "APP_ID": {
+      "description": "Get it from https://infospace.club",
+      "value": ""
+    }
+  }
+}
