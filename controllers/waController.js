@@ -16,10 +16,10 @@ const start = require('../function/info')
 const help = require('../function/help')
 const qr = require('../function/qr')
 const yttomp3 = require('../function/yttomp3')
+const carbon = require('../function/carbon')
 const pmpermit = require('../function/pmpermit')
 
 const { createWriteStream } = require("fs");
-
 
 const developer = "https://wa.me/6289677249060"
 
@@ -121,7 +121,8 @@ async function msgHandler(msg){
 
     cek.tambahLimit(sender.split("@")[0])	
 
-    if (msg.body.startsWith("!yttomp3 ")) { // YouTube to MP3 Downloaded
+    if (msg.body.startsWith("!yttomp3")) { // YouTube to MP3 Downloaded
+      
       var search = await yttomp3.search(msg)
 
       msg.reply(search.pesan)
@@ -131,57 +132,64 @@ async function msgHandler(msg){
           search.stream.on("finish", () => {
             var path = __dirname + `/../public/${search.title}.mp3`
             var stats = fs.statSync(path)
-            if(stats.size > 99999999){
-              const base_url = req.headers.host
-              client.sendMessage(msg.from, `Download here 👇\n${base_url}/public/${search.title}.mp3`)
-            }else{
+            if(stats.size > 99999999){ // Jika ukuran file lebih dari 100MB
+              var url_download = config.url + "/public/" + search.title + ".mp3"
+              msg.reply(`🙇‍♂️ Ukuran file terlalu besar \n\nSilahkan download melalui link berikut 👇\n${url_download}`)
+            } else {
               const media = MessageMedia.fromFilePath(path)
-              client.sendMessage(msg.from, media)
+              msg.reply(media)
             }
           })
         } catch (e) {
-          client.sendMessage(msg.from, `*⛔ Maaf*\n\nTerjadi kesalahan pada sistem kami..`)
+          msg.reply(`*⛔ Maaf*\n\nTerjadi kesalahan pada sistem kami..`)
         }
       }
       return
     }
 
-    if (msg.body.startsWith("!yttomp3") && msg.hasQuotedMsg) { // YouTube to MP3 Downloaded from reply text
-      var quotedMsg = await msg.getQuotedMessage();
-      var search = await yttomp3.search(quotedMsg, true)
+    if (msg.body.startsWith("!carbon")) { // Carbon || Ubah Text menjadi gambar
+      
+      var text
 
-      msg.reply(search.pesan)
-
-      if(search.status){
-        search.stream.on("finish", () => {
-          var path = __dirname + `/../public/${search.title}.mp3`
-          var stats = fs.statSync(path)
-          if(stats.size > 99999999){
-            const base_url = req.headers.host
-            client.sendMessage(msg.from, `Download here 👇\n${base_url}/public/${search.title}.mp3`)
-          }else{
-            const media = MessageMedia.fromFilePath(path)
-            client.sendMessage(msg.from, media)
-          }
-        })
+      if(msg.hasQuotedMsg){
+        var quotedMsg = await msg.getQuotedMessage()
+        text = quotedMsg.body
+      }else{
+        text = msg.body.replace("!carbon ", "")
       }
+
+      await carbon.mainF(text)
+      .then(function (response) {
+        try {
+          client.sendMessage(msg.from, new MessageMedia("image/png", Buffer.from(response.data).toString('base64'),"carbon.png"), { caption: `Hasil untuk 👇\n` + "```" + text + "```" })
+        } catch (error) {
+          msg.reply(`*⛔ Maaf*\n\n` + "```Terjadi kesalahann pada saat memproses data.```")
+        }
+      })
+      .catch(function (error) {
+        msg.reply(`*⛔ Maaf*\n\n` + "```Terjadi kesalahan pada saat memproses data.```")
+      })
+
       return
+
     }
 
-    if (msg.body.startsWith("!qr ")) { // QR Code Generator
-      let textToQr = msg.body.replace("!qr ", "")
-      var data = await qr.qrgen(textToQr);
-      client.sendMessage(msg.from, new MessageMedia(data.mimetype, data.data, data.filename), { caption: `QR code for 👇\n` + "```" + textToQr + "```" });
+    if (msg.body.startsWith("!qr")) { // QR Code Generator
+      
+      var text
+
+      if(msg.hasQuotedMsg){
+        var quotedMsg = await msg.getQuotedMessage()
+        text = quotedMsg.body
+      }else{
+        text = msg.body.replace("!qr ", "")
+      }
+
+      var data = await qr.qrgen(text);
+      client.sendMessage(msg.from, new MessageMedia(data.mimetype, data.data, data.filename), { caption: `QR code for 👇\n` + "```" + text + "```" });
       return
     } 
     
-    if (msg.body.startsWith("!qr") && msg.hasQuotedMsg) { // QR Code Generator from reply text
-      var quotedMsg = await msg.getQuotedMessage();
-      var data = await qr.qrgen(quotedMsg.body);
-      client.sendMessage(msg.from, new MessageMedia(data.mimetype, data.data, data.filename), { caption: `QR code for 👇\n` + "```" + quotedMsg.body + "```" });
-      return
-    }
-
     if (msg.body.startsWith("!help")) { // help function
       var data = await help.mainF(msg.body)
       msg.reply(data)

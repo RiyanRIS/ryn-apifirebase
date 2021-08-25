@@ -3,16 +3,15 @@ const YTDL = require("discord-ytdl-core");
 const { createWriteStream } = require("fs");
 
 async function search(msg, isQuoted = false) {
-  let args = msg.body.split(' ').slice(1);
-  let infos;
-  let stream;
+  let infos
+  let stream
+  let url
+  let out
 
-  var out
-
-  if(isQuoted){
-    args[0] = msg.body
+  if(msg.hasQuotedMsg){
+    url = msg.body
   } else {
-    if (!args[0]) {
+    if (!url) {
       out = ({
         status: false,
         pesan: `*⛔*\n\nKami belum menerima url video!\nGunakan \\help untuk melihat format perintah.`
@@ -21,15 +20,13 @@ async function search(msg, isQuoted = false) {
     }
   }
 
-  
- 
   try {
-      infos = await ScrapeYt.search(args.join(" "));
-      stream = YTDL(args.join(" "), { encoderArgs: ['-af','dynaudnorm=f=200'], fmt: 'mp3', opusEncoded: false }).pipe(createWriteStream(__dirname + `/../public/${infos[0].title}.mp3`))
+      infos = await ScrapeYt.search(url);
+      stream = YTDL(url, { encoderArgs: ['-af','dynaudnorm=f=200'], fmt: 'mp3', opusEncoded: false }).pipe(createWriteStream(__dirname + `/../public/${infos[0].title}.mp3`))
   } catch (e) {
       out = ({
         status: false,
-        pesan: `*⛔ Maaf*\n\nKami tidak menemukan hasil apapun untuk : ${args.join(" ")} !`
+        pesan: `*⛔ Maaf*\n\nKami tidak menemukan hasil apapun untuk : ${url} !`
       })
       return out
   }
