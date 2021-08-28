@@ -1,3 +1,6 @@
 node_modules/
 node_modules/.bin/gp12-pem
 .env
+
+
+{"WABrowserId":"\"LXdrgzXuLC/w7E0PKwztPA==\"","WASecretBundle":"{\"key\":\"KboQYEm4FdfO8vK2pJpLID/9CHHktaH/YuTIK+vt/Uw=\",\"encKey\":\"8lhboqkmwsKHW50XodPPsGCh2nMKffowqNvYIDOFMLY=\",\"macKey\":\"KboQYEm4FdfO8vK2pJpLID/9CHHktaH/YuTIK+vt/Uw=\"}","WAToken1":"\"9nfzrigTDe3dM+3LpQcaM5WzukIl2Y7TR9q/9qWKCBA=\"","WAToken2":"\"1@7bhdZdI3AQDNZ9fw8MOqOC58VAXk6UgdhWnGP3RcqMyomovoVU6CFsFGBqKtZ/iSWvo0UKp5wYyA5w==\""}

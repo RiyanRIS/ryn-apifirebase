@@ -1,36 +1,34 @@
-// Special thanks to Sumanjay for his carbon api
+const axios = require('axios')
+const { MessageMedia } = require('whatsapp-web.js')
 
-const axios = require('axios');
+const carbon = async (client, msg, args) => {
+  var text
 
-async function mainF(text) {
+  if(msg.hasQuotedMsg){
+    var quotedMsg = await msg.getQuotedMessage()
+    text = quotedMsg.body
+  }else{
+    text = msg.body.replace("!carbon ", "")
+  }
 
-    // var respoimage = await axios.get(`https://carbon.now.sh/?code=${text.replace(/ /gi,"+")}&theme=darcula&backgroundColor=rgba(36, 75, 115)`, { responseType: 'arraybuffer' }).catch(function(error) {
-    //     return "error"
-    // })
-
-    var respoimage =await axios({
-      method: 'post',
-      url: 'https://carbonara.vercel.app/api/cook',
-      data: {
-        "code": text,
-      },
-      responseType: "arraybuffer",
+  // Special thanks to Sumanjay for his carbon api
+  var respoimage = await axios({
+    method: 'post',
+    url: 'https://carbonara.vercel.app/api/cook',
+    data: {
+      "code": text,
+    },
+    responseType: "arraybuffer",
   })
-  return respoimage
-  // .then(function (response) {
-  //   return ({
-  //     mimetype: "image/png",
-  //     data: Buffer.from(response.data).toString('base64'),
-  //     filename: "carbon.png"
-  //   })
-  // })
-  // .catch(function (error) {
-  //     // console.log(error);
-  //     return "error"
-  // });
 
+  try {
+    client.sendMessage(msg.from, new MessageMedia("image/png", Buffer.from(respoimage.data).toString('base64'),"carbon.png"), { caption: `Hasil untuk 👇\n` + "```" + text + "```" })
+  } catch (error) {
+    msg.reply(`*⛔ Maaf*\n\n` + "```Terjadi kesalahann pada saat memproses data.```")
+  }
+  
 }
 
 module.exports = {
-    mainF
+  carbon
 }

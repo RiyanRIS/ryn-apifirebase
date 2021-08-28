@@ -1,7 +1,7 @@
 'use strict'
 
 const { Client, MessageMedia } = require('whatsapp-web.js')
-const axios = require('axios')
+const axios = require('axios') 
 
 const fs = require('fs')
 const mime = require('mime-types')
@@ -9,17 +9,21 @@ const mime = require('mime-types')
 const config = require('../config')
 const { phoneNumberFormatter } = require('../helpers/formatter')
 
-const perintah = require('../src/perintah')
 const cek = require('../function/cek')
 
+const { shortlink, formatBytes } = require('../function/func')
 const start = require('../function/info')
-const help = require('../function/help')
-const qr = require('../function/qr')
-const yttomp3 = require('../function/yttomp3')
-const carbon = require('../function/carbon')
-const pmpermit = require('../function/pmpermit')
+const { help } = require('../function/help')
 
-const { createWriteStream } = require("fs");
+const { qrcode } = require('../function/qrcode')
+const { y2mp3, y2mp4 } = require('../function/y2mate')
+const { ytmp3, ytmp4 } = require('../function/ytdl')
+const { ytplay } = require('../function/ytplay')
+const { carbon } = require('../function/carbon')
+const { faktaunik } = require('../function/faktaunik')
+const { sticker } = require('../function/sticker')
+
+const pmpermit = require('../function/pmpermit')
 
 const developer = "https://wa.me/6289677249060"
 
@@ -28,10 +32,11 @@ const puppeteerOptions = {
   args: ["--no-sandbox"],
 };
 
-let sessionData = JSON.parse(config.wa_sessionid);
+const sessionData = JSON.parse(config.wa_sessionid);
 
 const client = new Client({
   puppeteer: puppeteerOptions,
+  ffmpegPath: "ffmpeg",
   session: sessionData
 });
 
@@ -71,8 +76,10 @@ async function sendMedia(number, caption, fileUrl) {
 }
 
 async function downloadMedia(msg){
-  msg.downloadMedia().then(media => {
+  const filename = new Date().getTime();
+  let fullFilename
 
+  msg.downloadMedia().then(media => {
     if (media) {
       const mediaPath = './public/';
 
@@ -81,17 +88,17 @@ async function downloadMedia(msg){
       }
 
       const extension = mime.extension(media.mimetype);
-      
-      const filename = new Date().getTime();
-      const fullFilename = mediaPath + filename + '.' + extension;
+      filename = filename + '.' + extension
+      fullFilename = mediaPath + filename;
 
       try {
         fs.writeFileSync(fullFilename, media.data, { encoding: 'base64' }); 
       } catch (err) {
         console.log('Failed to save the file:', err);
       }
+      return filename
     }
-  });
+  })
 }
 
 // await banned(sender)
@@ -102,97 +109,134 @@ async function banned(sender){
 
 async function msgHandler(msg){
   let sender = msg.from
-  let body = msg.body
-  var isGroup = sender.endsWith('@g.us')
-
-  console.log(body)
+  let b = msg.body
+  let isGroup = sender.endsWith('@g.us')
+  let args = msg.body.trim().split(/ +/).slice(1)
+  const chat = await msg.getChat()
+  
+  console.log(b)
 
   if(!isGroup){ // BUKAN GROUP CHAT
 
-    if(await cek.isLimit(sender.split("@")[0])){
-      await client.sendMessage(sender, `*✋ Stop*\n\nMaaf, limit harian kamu sudah habis.\nGunakan perintah *${perintah.tambah_limit}* untuk menambah limit harianmu.`)
+    // if(await cek.isLimit(msg.from.split("@")[0])){
+    //   await client.sendMessage(msg.from, `*✋ Stop*\n\nMaaf, limit harian kamu sudah habis.\nGunakan perintah *${perintah.tambah_limit}* untuk menambah limit harianmu.`)
+    //   return
+    // }
+
+    if(await cek.isBanned(msg.from.split("@")[0])){
+      await client.sendMessage(msg.from, `*✋ Stop*\n\nMaaf, kamu telah terbanned. Hubungi ${developer} untuk membuka banned.`)
       return
     }
 
-    if(await cek.isBanned(sender.split("@")[0])){
-      await client.sendMessage(sender, `*✋ Stop*\n\nMaaf, kamu telah terbanned. Hubungi ${developer} untuk membuka banned.`)
+    cek.tambahLimit(msg.from.split("@")[0])
+
+    if (b.startsWith("!ytmp3")) { // YouTube to MP3 Downloader
+      await ytmp3(client, msg, args)
       return
     }
 
-    cek.tambahLimit(sender.split("@")[0])	
+    if (b.startsWith("!ytmp4")) { // YouTube to MP4 Downloader
+      await ytmp4(client, msg, args)
+      return
+    }
 
-    if (msg.body.startsWith("!yttomp3")) { // YouTube to MP3 Downloaded
-      
-      var search = await yttomp3.search(msg)
+    if (b.startsWith("!y2mp3")) { // Youtube to MP3 Downloader server y2mate.com
+      await y2mp3(client, msg, args)
+      return
+    }
 
-      msg.reply(search.pesan)
+    if (b.startsWith("!y2mp4")) { // Youtube to MP4 Downloader server y2mate.com
+      await y2mp4(client, msg, args)
+      return
+    }
 
-      if(search.status){
-        try{
-          search.stream.on("finish", () => {
-            var path = __dirname + `/../public/${search.title}.mp3`
-            var stats = fs.statSync(path)
-            if(stats.size > 99999999){ // Jika ukuran file lebih dari 100MB
-              var url_download = config.url + "/public/" + search.title + ".mp3"
-              msg.reply(`🙇‍♂️ Ukuran file terlalu besar \n\nSilahkan download melalui link berikut 👇\n${url_download}`)
-            } else {
-              const media = MessageMedia.fromFilePath(path)
-              msg.reply(media)
-            }
+    if (b.startsWith("!faktaunik")) { // Memberikan fakta unik secara random
+      await faktaunik(client, msg, args)
+      return
+    }
+
+    if (b.startsWith("!sticker")) { // Membuat stiker dari gambar/image
+      await sticker(client, msg, args)
+      return
+    }
+
+    if (b.startsWith("!carbon")) { // Carbon || Ubah Text menjadi gambar
+      await carbon(client, msg, args)
+      return
+    }
+
+    if (b.startsWith("!qr")) { // QR Code Generator
+      await qrcode(client, msg, args)
+      return
+    }
+
+    if (b.startsWith("!play")) { // Play music from Youtube
+      await ytplay(client, msg, args)
+      return
+    }
+
+    if (b.startsWith("!brainly")) { // Brainly Scraper
+      const brainly = require('brainly-scraper')
+
+      var pertanyaan = msg.body.split('!brainly ')[1]
+      console.log("pertanyaan: ", pertanyaan)
+      brainly(pertanyaan).then(res => {
+        res.data.forEach( x => {
+          chat.sendMessage(`*Pertanyaan:* \n${x.pertanyaan}\n\n*Jawaban:* \n${x.jawaban[0].text}`)
+        })
+      });
+    }
+
+    if (b.startsWith("!glow")) {
+      const puppeteer = require("puppeteer")
+      msg.reply("sebentarr.. kita proses dulu")
+      var h = msg.body.split("!glow ")[1];
+  
+      try{
+        (async () => {
+          const browser = await puppeteer.launch({
+            headless: false,
           })
-        } catch (e) {
-          msg.reply(`*⛔ Maaf*\n\nTerjadi kesalahan pada sistem kami..`)
-        }
-      }
-      return
-    }
-
-    if (msg.body.startsWith("!carbon")) { // Carbon || Ubah Text menjadi gambar
+          const page = await browser.newPage();
+          await page
+            .goto("https://en.ephoto360.com/advanced-glow-effects-74.html", {
+              waitUntil: "networkidle2",
+            })
+            .then(async () => {
+              await page.type("#text-0", h);
+              await page.click("#submit");
+              await new Promise(resolve => setTimeout(resolve, 10000));
+              try {
+                await page.waitForSelector("#link-image");
+                const element = await page.$("div.thumbnail > img");
+                const text = await (await element.getProperty("src")).jsonValue();
       
-      var text
-
-      if(msg.hasQuotedMsg){
-        var quotedMsg = await msg.getQuotedMessage()
-        text = quotedMsg.body
-      }else{
-        text = msg.body.replace("!carbon ", "")
+                try {
+                  const media = MessageMedia.fromUrl(text)
+                  client.sendMessage(msg.from, await media)                  
+                } catch (e) {
+                  console.log(e)
+                  msg.reply(text)
+                }
+                
+                browser.close();
+              } catch (error) {
+                console.log(error);
+                msg.reply(`Aku gk mau buatin, jangan paksa aku mas`)
+              }
+            })
+            .catch((err) => {
+              console.log(error);
+              msg.reply(`Aku gk mau buatin, jangan paksa aku mas`)
+            });
+        })();
+      } catch(err) {
+        msg.reply(`Aku gk mau buatin, jangan paksa aku mas`);
       }
-
-      await carbon.mainF(text)
-      .then(function (response) {
-        try {
-          client.sendMessage(msg.from, new MessageMedia("image/png", Buffer.from(response.data).toString('base64'),"carbon.png"), { caption: `Hasil untuk 👇\n` + "```" + text + "```" })
-        } catch (error) {
-          msg.reply(`*⛔ Maaf*\n\n` + "```Terjadi kesalahann pada saat memproses data.```")
-        }
-      })
-      .catch(function (error) {
-        msg.reply(`*⛔ Maaf*\n\n` + "```Terjadi kesalahan pada saat memproses data.```")
-      })
-
-      return
-
     }
-
-    if (msg.body.startsWith("!qr")) { // QR Code Generator
-      
-      var text
-
-      if(msg.hasQuotedMsg){
-        var quotedMsg = await msg.getQuotedMessage()
-        text = quotedMsg.body
-      }else{
-        text = msg.body.replace("!qr ", "")
-      }
-
-      var data = await qr.qrgen(text);
-      client.sendMessage(msg.from, new MessageMedia(data.mimetype, data.data, data.filename), { caption: `QR code for 👇\n` + "```" + text + "```" });
-      return
-    } 
     
-    if (msg.body.startsWith("!help")) { // help function
-      var data = await help.mainF(msg.body)
-      msg.reply(data)
+    if (b.startsWith("!help")) { // help function
+      await help(client, msg, args)
       return
     }
 

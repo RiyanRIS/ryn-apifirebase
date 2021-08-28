@@ -1,5 +1,5 @@
 const ScrapeYt = require("scrape-yt");
-const YTDL = require("discord-ytdl-core");
+const YTDL = require("ytdl-core");
 const { createWriteStream } = require("fs");
 
 async function search(msg, isQuoted = false) {
@@ -11,6 +11,8 @@ async function search(msg, isQuoted = false) {
   if(msg.hasQuotedMsg){
     url = msg.body
   } else {
+    url = msg.body.trim().split(/ +/).slice(1)
+    url = url[0]
     if (!url) {
       out = ({
         status: false,
