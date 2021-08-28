@@ -110,15 +110,10 @@ async function banned(sender){
 async function msgHandler(msg){
   let sender = msg.from
   let b = msg.body
-  let isGroup = sender.endsWith('@g.us')
   let args = msg.body.trim().split(/ +/).slice(1)
   const chat = await msg.getChat()
   
-  console.log(b)
-
-  if(!isGroup){ // BUKAN GROUP CHAT
-
-    // if(await cek.isLimit(msg.from.split("@")[0])){
+  // if(await cek.isLimit(msg.from.split("@")[0])){
     //   await client.sendMessage(msg.from, `*✋ Stop*\n\nMaaf, limit harian kamu sudah habis.\nGunakan perintah *${perintah.tambah_limit}* untuk menambah limit harianmu.`)
     //   return
     // }
@@ -129,6 +124,8 @@ async function msgHandler(msg){
     }
 
     cek.tambahLimit(msg.from.split("@")[0])
+
+  if (!chat.isGroup) {// BUKAN GROUP CHAT
 
     if (b.startsWith("!ytmp3")) { // YouTube to MP3 Downloader
       await ytmp3(client, msg, args)
@@ -234,6 +231,41 @@ async function msgHandler(msg){
         msg.reply(`Aku gk mau buatin, jangan paksa aku mas`);
       }
     }
+
+    if (b.startsWith('!katacinta')) {
+      const cheerio = require("cheerio");
+      const request = require('request');
+      const ran1 = Math.floor(Math.random() * 100)
+      const ran2 = Math.floor(Math.random() * 10)
+      request.get({
+        headers: { 'user-agent' : 'Mozilla/5.0 (Linux; Android 8.1.0; vivo 1820) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Mobile Safari/537.36'
+        },
+        url: 'https://jagokata.com/kata-bijak/kata-cinta.html?page=' + ran1,
+      }, function(error, response, body){
+          let $ = cheerio.load(body);
+          let author = $('a[class="auteurfbnaam"]').contents()[ran2]['data']
+          let kata = $('q[class="fbquote"]').contents()[ran2]['data']
+          msg.reply(`_${kata}_\n\n~*${author}*`)
+      })
+    }
+
+    if (b.startsWith('!katabijak')) {
+      const cheerio = require("cheerio");
+      const request = require('request');
+      const ran1 = Math.floor(Math.random() * 10)
+      const ran2 = Math.floor(Math.random() * 10)
+      request.get({
+        headers: { 'user-agent' : 'Mozilla/5.0 (Linux; Android 8.1.0; vivo 1820) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Mobile Safari/537.36'
+        },
+        url: 'https://jagokata.com/kata-bijak/popular.html?page=' + ran1,
+      }, function(error, response, body){
+          let $ = cheerio.load(body);
+          let author = $('a[class="auteurfbnaam"]').contents()[ran2]['data']
+          let kata = $('q[class="fbquote"]').contents()[ran2]['data']
+          msg.reply(`_${kata}_\n\n~*${author}*`)
+
+      })
+    }
     
     if (b.startsWith("!help")) { // help function
       await help(client, msg, args)
@@ -249,6 +281,63 @@ async function msgHandler(msg){
     if (msg.body == "!ping") { // Ping command
       msg.reply("Pong !!!")
       return
+    }
+  } else if(chat.isGroup) { // JIKA GROUP CHAT
+
+    const misi = ['6282237416678'] // nomor bot
+    var aq = msg.from.replace("@c.us", "").split('-')
+
+    if (misi.includes(aq[0]) === true || aq[0] === chat.owner.user) {
+    }
+
+    // const authorId = message.author || message.from;
+    // const chat = await message.getChat();
+    // if (chat.isGroup) {
+    //   for(let participant of chat.participants) {
+    //     if(participant.id._serialized === authorId && !participant.isAdmin) {
+    //       return `The command can only be used by group admins.`;
+    //     }
+    //   }
+    // }
+
+    if (b.startsWith("#setsubjek")) { // Ganti nama Group
+      chat.setSubject(args[0])
+    }
+
+    if (b == "#info") { // Info Group
+      msg.reply(`*Group Details*\nName : ${chat.name}\nDeskripsi : ${chat.description}\nDibuat pada : ${chat.createdAt.toString()}\nDibuat oleh : ${chat.owner.user}\nMember : ${chat.participants.length}`)
+    }
+
+    if (b == "#member") {
+      const chat = await msg.getChat();
+          let text = "";
+          let mentions = [];
+
+          for(let participant of chat.participants) {
+              const contact = await client.getContactById(participant.id._serialized);
+
+              mentions.push(contact);
+              text += "Hai ";
+                    text += `@${participant.id.user} `;
+              text += "apa kabar :)\n";
+          }
+
+          chat.sendMessage(text, { mentions });
+    }
+
+    if (b.startsWith("#add")) {
+      let title = args[0]
+      let nohp
+      if (title.indexOf('62') == -1) {
+        nohp = `${title.replace('0', '62')}@c.us`
+          chat.addParticipants([nohp])
+          msg.reply(`[:] Selamat datang @${nohp}! jangan lupa baca Deskripsi group yah 😎👊`)
+      } else if (title.indexOf('62') != -1) {
+chat.addParticipants([`${title}@c.us`])
+          msg.reply(`[:] Selamat datang @${title}! jangan lupa baca Deskripsi group yah 😎👊`)}
+else {
+          msg.reply('[:] Format nomor harus 0821xxxxxx')
+      }
     }
   }
 }
