@@ -11,7 +11,7 @@ const { phoneNumberFormatter } = require('../helpers/formatter')
 
 const cek = require('../function/cek')
 
-const { shortlink, formatBytes } = require('../function/func')
+const { getGroupAdmins } = require('../function/func')
 const start = require('../function/info')
 const { help } = require('../function/help')
 
@@ -22,6 +22,7 @@ const { ytplay } = require('../function/ytplay')
 const { carbon } = require('../function/carbon')
 const { faktaunik } = require('../function/faktaunik')
 const { sticker } = require('../function/sticker')
+const { ocr } = require('../function/ocr')
 
 const pmpermit = require('../function/pmpermit')
 
@@ -76,7 +77,7 @@ async function sendMedia(number, caption, fileUrl) {
 }
 
 async function downloadMedia(msg){
-  const filename = new Date().getTime();
+  let filename = new Date().getTime();
   let fullFilename
 
   msg.downloadMedia().then(media => {
@@ -108,24 +109,23 @@ async function banned(sender){
 }
 
 async function msgHandler(msg){
-  let sender = msg.from
   let b = msg.body
   let args = msg.body.trim().split(/ +/).slice(1)
   const chat = await msg.getChat()
-  
-  // if(await cek.isLimit(msg.from.split("@")[0])){
-    //   await client.sendMessage(msg.from, `*✋ Stop*\n\nMaaf, limit harian kamu sudah habis.\nGunakan perintah *${perintah.tambah_limit}* untuk menambah limit harianmu.`)
-    //   return
-    // }
+  const botNumber = client.info.me._serialized
+  const authorId = msg.author || msg.from
 
-    if(await cek.isBanned(msg.from.split("@")[0])){
-      await client.sendMessage(msg.from, `*✋ Stop*\n\nMaaf, kamu telah terbanned. Hubungi ${developer} untuk membuka banned.`)
-      return
-    }
+  if(await cek.isLimit(authorId)){
+    await client.sendMessage(authorId, `*✋ Limit Sudah Habis*\n\nMaaf, limit harian kamu sudah habis.\nGunakan perintah *${perintah.tambah_limit}* untuk menambah limit harianmu.`)
+    return
+  }
 
-    cek.tambahLimit(msg.from.split("@")[0])
+  if(await cek.isBanned(authorId)){
+    await client.sendMessage(authorId, `*✋ BANNED*\n\nMaaf, kamu telah terbanned. Hubungi ${developer} untuk membuka banned.`)
+    return
+  }
 
-  if (!chat.isGroup) {// BUKAN GROUP CHAT
+  if (!chat.isGroup) { // BUKAN GROUP CHAT
 
     if (b.startsWith("!ytmp3")) { // YouTube to MP3 Downloader
       await ytmp3(client, msg, args)
@@ -266,6 +266,11 @@ async function msgHandler(msg){
 
       })
     }
+
+    if (b.startsWith('!ocr')) {
+      await ocr(msg)
+      return
+    }
     
     if (b.startsWith("!help")) { // help function
       await help(client, msg, args)
@@ -282,63 +287,72 @@ async function msgHandler(msg){
       msg.reply("Pong !!!")
       return
     }
-  } else if(chat.isGroup) { // JIKA GROUP CHAT
+  
+  } else { // JIKA GROUP CHAT
 
-    const misi = ['6282237416678'] // nomor bot
-    var aq = msg.from.replace("@c.us", "").split('-')
+    const punyahak = () => { // JIKA BOT DAN PENGIRIM ADALAH ADMIN 
+      for(let participant of chat.participants) {
+        // JIKA PENGIRIM BUKAN ADMIN
+        if(participant.id._serialized === authorId && !participant.isAdmin) {
+          msg.reply(`⛔ Perintah hanya boleh digunakan oleh admin group.`)
+          return false
+        }
 
-    if (misi.includes(aq[0]) === true || aq[0] === chat.owner.user) {
+        // JIKA BOT BUKAN ADMIN
+        if(participant.id._serialized === botNumber && !participant.isAdmin) {
+          msg.reply(`⛔ Bot belum menjadi admin.`)
+          return false
+        }
+      }
+      return true
     }
 
-    // const authorId = message.author || message.from;
-    // const chat = await message.getChat();
-    // if (chat.isGroup) {
-    //   for(let participant of chat.participants) {
-    //     if(participant.id._serialized === authorId && !participant.isAdmin) {
-    //       return `The command can only be used by group admins.`;
-    //     }
-    //   }
-    // }
-
-    if (b.startsWith("#setsubjek")) { // Ganti nama Group
+    if (b.startsWith("#setsubjek")) { // Ganti Nama/Subjek Group
+      if(!punyahak()) return
       chat.setSubject(args[0])
+      cek.tambahLimit(authorId)
     }
 
     if (b == "#info") { // Info Group
       msg.reply(`*Group Details*\nName : ${chat.name}\nDeskripsi : ${chat.description}\nDibuat pada : ${chat.createdAt.toString()}\nDibuat oleh : ${chat.owner.user}\nMember : ${chat.participants.length}`)
     }
 
-    if (b == "#member") {
-      const chat = await msg.getChat();
-          let text = "";
-          let mentions = [];
+    if (b.startsWith("#tagall")) { // Tag Semua Member
+      if(!punyahak()) return
+      cek.tambahLimit(authorId)
 
-          for(let participant of chat.participants) {
-              const contact = await client.getContactById(participant.id._serialized);
+      let text = "";
+      let mentions = [];
 
-              mentions.push(contact);
-              text += "Hai ";
-                    text += `@${participant.id.user} `;
-              text += "apa kabar :)\n";
-          }
+      for(let participant of chat.participants) {
+          const contact = await client.getContactById(participant.id._serialized);
 
-          chat.sendMessage(text, { mentions });
-    }
-
-    if (b.startsWith("#add")) {
-      let title = args[0]
-      let nohp
-      if (title.indexOf('62') == -1) {
-        nohp = `${title.replace('0', '62')}@c.us`
-          chat.addParticipants([nohp])
-          msg.reply(`[:] Selamat datang @${nohp}! jangan lupa baca Deskripsi group yah 😎👊`)
-      } else if (title.indexOf('62') != -1) {
-chat.addParticipants([`${title}@c.us`])
-          msg.reply(`[:] Selamat datang @${title}! jangan lupa baca Deskripsi group yah 😎👊`)}
-else {
-          msg.reply('[:] Format nomor harus 0821xxxxxx')
+          mentions.push(contact);
+          text += `@${participant.id.user}`;
       }
+      text += `\n\n ${args.join(' ')}`
+
+      chat.sendMessage(text, { mentions });
     }
+
+//     if (b.startsWith("#add")) { // Tambah Anggota Group
+//       if(!punyahak()) return
+//       cek.tambahLimit(authorId)
+
+//       let title = args[0]
+//       let nohp
+//       if (title.indexOf('62') == -1) {
+//         nohp = `${title.replace('0', '62')}@c.us`
+//           chat.addParticipants([nohp])
+//           msg.reply(`[:] Selamat datang @${nohp}! jangan lupa baca Deskripsi group yah 😎👊`)
+//       } else if (title.indexOf('62') != -1) {
+// chat.addParticipants([`${title}@c.us`])
+//           msg.reply(`[:] Selamat datang @${title}! jangan lupa baca Deskripsi group yah 😎👊`)}
+// else {
+//           msg.reply('[:] Format nomor harus 0821xxxxxx')
+//       }
+//     }
+
   }
 }
 

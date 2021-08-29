@@ -43,4 +43,12 @@ const formatBytes = (bytes, decimals = 2) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-module.exports = { shortlink, formatBytes, formatTime }
+const getGroupAdmins = (participants) => {
+	admins = []
+	for (let i of participants) {
+		i.isAdmin ? admins.push(i.id.user) : ''
+	}
+	return admins
+}
+
+module.exports = { shortlink, formatBytes, formatTime, getGroupAdmins }
