@@ -233,8 +233,11 @@ async function msgHandler(msg){
     }
 
     if (b.startsWith("!twd")) {
+      const media = MessageMedia.fromFilePath("./public/1630313685449-mod.mp4")
+      chat.sendMessage(media)
+      return
       const puppeteer = require("puppeteer")
-      msg.reply("sebentarr.. kita proses dulu")
+      console.log("sebentarr.. kita proses dulu")
 
       args[0] = "https://twitter.com/jowoshitpost/status/1432212716962258950?s=20"
 
@@ -257,32 +260,55 @@ async function msgHandler(msg){
                 const element = await page.$("a.link-download");
                 const text = await (await element.getProperty("href")).jsonValue();
                 
-                console.log(text)
                 msg.reply(text)
 
-                try {
-                  const media = MessageMedia.fromUrl(text)
-                  chat.sendMessage(await media)
-                  client.sendMessage(msg.from, await media)
-                                  
-                } catch (e) {
-                  console.log(e)
-                  msg.reply(text)
-                }
-                
-                browser.close();
+                const http = require('https'); // or 'https' for https:// URLs
+                const fs = require('fs');
+
+                const filename = new Date().getTime()
+                const path = `./public/${filename}.mp4`;
+                const path1 = `./public/${filename}-mod.mp4`;
+                const file = fs.createWriteStream(path);
+                const request = http.get(text, function(response) {
+                  response.pipe(file);
+                })
+
+                file.on("finish", () => {
+                  console.log('file finish: ');
+
+                  const ffmpeg = require('fluent-ffmpeg');
+
+                  ffmpeg(path)
+                    .output(path1)
+                    .videoCodec('libx264')
+                    .format('mp4')
+
+                    .on('error', function(err) {
+                        console.log('An error occurred: ' + err.message);
+                        msg.reply(`error`)
+                    })  
+                    .on('end', async function() { 
+                        console.log('Finished processing');
+                        const media = MessageMedia.fromFilePath(path1)
+                        chat.sendMessage(await media)
+                    })
+                    .run();
+                })
+
               } catch (error) {
                 console.log(error);
                 msg.reply(`error`)
               }
             })
             .catch((err) => {
-              console.log(error);
+              console.log(err);
               msg.reply(`error`)
             });
+            browser.close();
         })();
       } catch(err) {
-        msg.reply(`Aku gk mau buatin, jangan paksa aku mas`);
+        console.log(err);
+        msg.reply(`error`)
       }
     }
 

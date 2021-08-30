@@ -1,47 +1,22 @@
 const fs = require("fs")
-const mime = require('mime-types')
 const exec = require("child_process").exec
+const wa = require('../lib/wa')
 const log = console.debug
 
-const ocr = async (msg) => {
-  if(msg.hasQuotedMsg){
-    const quoted = await msg.getQuotedMessage()
-    if(quoted.hasMedia){
-      let filename = new Date().getTime();
-      let fullFilename
+const ocr = async (sender, args, msg) => {
+  const media = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
+  const hasil = await wa.downloadMedia(media)
 
-      quoted.downloadMedia().then(async media => {
-        if (media) {
-          const mediaPath = './public/';
-
-          if (!fs.existsSync(mediaPath)) {
-            fs.mkdirSync(mediaPath);
-          }
-
-          const extension = mime.extension(media.mimetype);
-          filename = filename + '.' + extension
-          fullFilename = mediaPath + filename;
-
-          try {
-            fs.writeFileSync(fullFilename, media.data, { encoding: 'base64' }); 
-          } catch (err) {
-            console.log('Failed to save the file:', err);
-          }
-
-          await recognize(fullFilename, {lang: 'eng+ind', oem: 1, psm: 3})
-            .then(teks => {
-              msg.reply(teks.trim())
-              fs.unlinkSync(fullFilename)
-          })
-          .catch(err => {
-            msg.reply("OCR gagal")
-            console.error("OCR error: ", err)
-            fs.unlinkSync(fullFilename)
-          })
-        }
-      })
-    }
-  }
+  await recognize(hasil.filepath, {lang: 'eng+ind', oem: 1, psm: 3})
+    .then(teks => {
+      wa.reply(sender, teks.trim(), msg)
+      fs.unlinkSync(hasil.filepath)
+  })
+  .catch(err => {
+    wa.reply(sender, "OCR gagal", msg)
+    console.error("OCR error: ", err)
+    fs.unlinkSync(hasil.filepath)
+  })
 } 
 
 function recognize(filename, config = {}) {

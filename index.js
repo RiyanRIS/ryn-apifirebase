@@ -1,29 +1,49 @@
 'use strict';
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const config = require('./config');
-const waRoutes = require('./routes/wa-routes');
-// const quoteRoutes = require('./routes/quote-routes');
-const path = require("path")
+const { WAConnection, MessageType, MessageOptions, Mimetype } = require('@adiwajshing/baileys')
+const wa_konek = require("./lib/connect")
+const wa = require("./lib/wa")
 
-const app = express();
-const serveIndex = require('serve-index');
+// Function
+const { ytmp3, ytmp4 } = require('./function/ytdl')
+const { ocr } = require('./function/ocr')
 
-app.use(express.json());
-app.use(cors());
-app.use(bodyParser.json());
+wa_konek.sambungkan()
+const conn = wa_konek.koneksi
 
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, "views/index.html"))
+conn.on('chat-update', async(cb) => {
+  if (!cb.hasNewMessage || !cb.messages || (cb.key && cb.key.remoteJid == 'status@broadcast')) return
+	const msg = cb.messages.all()[0]
+  if(msg.key.fromMe) return
+  const type = Object.keys(msg.message)[0]
+  const b = msg.message.conversation || msg.message[type].caption || msg.message[type].text || ""
+  const args = b.trim().split(/ +/).slice(1)
+  const sender = msg.key.remoteJid
+  const isGroup = sender.endsWith('@g.us')
+
+  if(isGroup){ // Jika group chat
+    const groupMetadata = await conn.groupMetadata(sender)
+    const groupMembers = groupMetadata.participants
+    const groupAdmins = await wa.getGroupAdmins(groupMembers)
+    const isAdmin = groupAdmins.includes(sender) || false
+    const isBotAdmin = groupAdmins.includes(conn.user.jid) || false
+
+  } else { // Jika bukan group chat
+    if (b.startsWith("!ytmp3")) { // YouTube to MP3 Downloader
+      await ytmp3(sender, args, msg)
+      return
+    }
+
+    if (b.startsWith("!ytmp4")) { // YouTube to MP4 Downloader
+      await ytmp4(sender, args, msg)
+      return
+    }
+
+    if (b.startsWith('!ocr')) {
+      await ocr(sender, args, msg)
+      return
+    }
+
+  }
+  
 })
 
-app.get('/wa', function (req, res) {
-  res.sendFile(path.join(__dirname, "views/wa.html"))
-})
-
-app.use('/public', express.static('public'), serveIndex('public', { 'icons': true }))
-
-app.use('/wa', waRoutes.routes);
-
-app.listen(config.port, () => console.log('App is listening on url http://localhost:' + config.port));

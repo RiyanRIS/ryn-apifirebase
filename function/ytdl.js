@@ -1,26 +1,26 @@
 // https://github.com/fent/node-ytdl-core
 
 const YTDL = require("ytdl-core");
-const { statSync, createWriteStream } = require("fs");
 const config = require("../config")
-const { shortlink, formatBytes } = require("./func")
-const { MessageMedia } = require('whatsapp-web.js')
+const { shortlink, formatBytes, getRandomExt } = require("./func")
 
-async function ytmp3(client, msg, args) {
+const { createWriteStream, readFileSync, statSync } = require('fs')
+const wa = require('../lib/wa')
+
+async function ytmp3(sender, args, msg) {
   
   if(!YTDL.validateURL(args[0])){
-    msg.reply(`*⛔ Maaf*\n\nUrl video tidak valid atau kami tidak menemukan apapun!`)
+    await wa.reply(sender, `*⛔ Maaf*\n\nUrl video tidak valid atau kami tidak menemukan apapun!`, msg)
     return
   }
 
-  const chat = await msg.getChat()
-  const filename = new Date().getTime()
-  const path = `./public/${filename}.mp3`
+  const filename = getRandomExt(".mp3")
+  const path = `./public/${filename}`
 
   const videoID = YTDL.getURLVideoID(args[0])
   const info = await YTDL.getInfo(videoID)
 
-  msg.reply(`*⏳ Tunggu Sebentar*\n\nDownload musik sedang kami proses.`)
+  wa.reply(sender, `*⏳ Tunggu Sebentar*\n\nDownload musik sedang kami proses.`, msg)
 
   let stream = YTDL(args[0], {quality: 'highestaudio', format: 'audioonly'})
 
@@ -29,39 +29,38 @@ async function ytmp3(client, msg, args) {
 
   simpen.on("finish", async () => {
     let stats = statSync(path)
-    let url_download = config.url + "/public/"+ filename + ".mp3"
+    let url_download = config.url + "/public/"+ filename
 
-    msg.reply(`*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n*Link:* ${await shortlink(url_download)}`)
+    await wa.reply(sender, `*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n*Link:* ${await shortlink(url_download)}`, msg)
 
     if(stats.size < 29999999){ // jika ukuran file kurang dari 30 mb
-      const musiknya = MessageMedia.fromFilePath(path)
-      chat.sendMessage(musiknya)
+      const musiknya = readFileSync(path)
+      await wa.sendAudio(sender, musiknya)
     }
   });
 
   simpen.on("error", (e) => {
     console.log(e)
-    msg.reply(`*⛔ Maaf*\n\nTerjadi kesalahan pada server kami!`)
+    wa.reply(sender, `*⛔ Maaf*\n\nTerjadi kesalahan pada server kami!`, msg)
   })
 }
 
-async function ytmp4(client, msg, args) {
+async function ytmp4(sender, args, msg) {
 
   if(!YTDL.validateURL(args[0])){
-    msg.reply(`*⛔ Maaf*\n\nUrl video tidak valid atau kami tidak menemukan apapun!`)
+    await wa.reply(sender, `*⛔ Maaf*\n\nUrl video tidak valid atau kami tidak menemukan apapun!`, msg)
     return
   }
 
-  const chat = await msg.getChat()
   let videoID = YTDL.getURLVideoID(args[0])
   let info = await YTDL.getInfo(videoID)
 
-  msg.reply(`*⏳ Tunggu Sebentar*\n\nDownload video sedang kami proses.`)
+  await wa.reply(sender, `*⏳ Tunggu Sebentar*\n\nDownload video sedang kami proses.`, msg)
 
   let stream = YTDL(args[0], {quality: 'highest', format: 'audioandvideo'})
 
-  const filename = new Date().getTime()
-  let path = `./public/${filename}.mp4`
+  const filename = getRandomExt(".mp4")
+  let path = `./public/${filename}`
 
   let simp = createWriteStream(path);
   let simpen = stream.pipe(simp)
@@ -69,19 +68,19 @@ async function ytmp4(client, msg, args) {
   simpen.on("finish", async () => {
     
     let stats = statSync(path)
-    let url_download = config.url + "/public/"+ filename + ".mp4"
+    let url_download = config.url + "/public/"+ filename
 
-    msg.reply(`*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n*Link:* ${await shortlink(url_download)}`)
+    await wa.reply(sender, `*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n*Link:* ${await shortlink(url_download)}`, msg)
 
     if(stats.size < 29999999){ // jika ukuran file kurang dari 30 mb
-      const musiknya = MessageMedia.fromFilePath(path)
-      chat.sendMessage(musiknya)
+      const videonya = readFileSync(path)
+      await wa.sendVideo(sender, videonya)
     }
   });
 
   simpen.on("error", (e) => {
     console.log(e)
-    msg.reply(`*⛔ Maaf*\n\nTerjadi kesalahan pada server kami!`)
+    wa.reply(sender, `*⛔ Maaf*\n\nTerjadi kesalahan pada server kami!`, msg)
   })
 }
 

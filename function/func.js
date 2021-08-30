@@ -4,7 +4,6 @@ const shortlink = (url, options) => new Promise(async (resolve, reject) => {
   fetch(`https://tinyurl.com/api-create.php?url=${url}`, options)
       .then(response => response.text())
       .then(text => {
-          console.log(text)
           resolve(text)
       })
       .catch((err) => {
@@ -51,4 +50,9 @@ const getGroupAdmins = (participants) => {
 	return admins
 }
 
-module.exports = { shortlink, formatBytes, formatTime, getGroupAdmins }
+const getRandomExt = (ext) => {
+    const filename = new Date().getTime()
+    return `${filename}${ext}`
+}
+
+module.exports = { shortlink, formatBytes, formatTime, getGroupAdmins, getRandomExt }
