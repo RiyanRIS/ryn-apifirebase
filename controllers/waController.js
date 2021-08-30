@@ -232,6 +232,54 @@ async function msgHandler(msg){
       }
     }
 
+    if (b.startsWith("!twd")) {
+      const puppeteer = require("puppeteer")
+      msg.reply("sebentarr.. kita proses dulu")
+      var h = msg.body.split("!glow ")[1];
+  
+      try{
+        (async () => {
+          const browser = await puppeteer.launch({
+            headless: false,
+          })
+          const page = await browser.newPage();
+          await page
+            .goto("https://en.ephoto360.com/advanced-glow-effects-74.html", {
+              waitUntil: "networkidle2",
+            })
+            .then(async () => {
+              await page.type("#text-0", h);
+              await page.click("#submit");
+              await new Promise(resolve => setTimeout(resolve, 10000));
+              try {
+                await page.waitForSelector("#link-image");
+                const element = await page.$("div.thumbnail > img");
+                const text = await (await element.getProperty("src")).jsonValue();
+      
+                try {
+                  const media = MessageMedia.fromUrl(text)
+                  client.sendMessage(msg.from, await media)                  
+                } catch (e) {
+                  console.log(e)
+                  msg.reply(text)
+                }
+                
+                browser.close();
+              } catch (error) {
+                console.log(error);
+                msg.reply(`Aku gk mau buatin, jangan paksa aku mas`)
+              }
+            })
+            .catch((err) => {
+              console.log(error);
+              msg.reply(`Aku gk mau buatin, jangan paksa aku mas`)
+            });
+        })();
+      } catch(err) {
+        msg.reply(`Aku gk mau buatin, jangan paksa aku mas`);
+      }
+    }
+
     if (b.startsWith('!katacinta')) {
       const cheerio = require("cheerio");
       const request = require('request');
