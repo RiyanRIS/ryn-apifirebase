@@ -236,7 +236,6 @@ async function msgHandler(msg){
       const puppeteer = require("puppeteer")
       msg.reply("sebentarr.. kita proses dulu")
       var h = msg.body.split("!glow ")[1];
-
       try{
         (async () => {
           const browser = await puppeteer.launch({
