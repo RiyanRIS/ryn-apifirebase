@@ -235,8 +235,9 @@ async function msgHandler(msg){
     if (b.startsWith("!twd")) {
       const puppeteer = require("puppeteer")
       msg.reply("sebentarr.. kita proses dulu")
-      var h = msg.body.split("!glow ")[1];
-      
+
+      args[0] = "https://twitter.com/jowoshitpost/status/1432212716962258950?s=20"
+
       try{
         (async () => {
           const browser = await puppeteer.launch({
@@ -244,21 +245,26 @@ async function msgHandler(msg){
           })
           const page = await browser.newPage();
           await page
-            .goto("https://en.ephoto360.com/advanced-glow-effects-74.html", {
+            .goto("https://id.savefrom.net/download-from-twitter", {
               waitUntil: "networkidle2",
             })
             .then(async () => {
-              await page.type("#text-0", h);
-              await page.click("#submit");
-              await new Promise(resolve => setTimeout(resolve, 10000));
+              await page.type("#sf_url", args[0]);
+              await page.click("#sf_submit");
+              await new Promise(resolve => setTimeout(resolve, 5000));
               try {
-                await page.waitForSelector("#link-image");
-                const element = await page.$("div.thumbnail > img");
-                const text = await (await element.getProperty("src")).jsonValue();
-      
+                await page.waitForSelector("#sf_result");
+                const element = await page.$("a.link-download");
+                const text = await (await element.getProperty("href")).jsonValue();
+                
+                console.log(text)
+                msg.reply(text)
+
                 try {
                   const media = MessageMedia.fromUrl(text)
-                  client.sendMessage(msg.from, await media)                  
+                  chat.sendMessage(await media)
+                  client.sendMessage(msg.from, await media)
+                                  
                 } catch (e) {
                   console.log(e)
                   msg.reply(text)
@@ -267,12 +273,12 @@ async function msgHandler(msg){
                 browser.close();
               } catch (error) {
                 console.log(error);
-                msg.reply(`Aku gk mau buatin, jangan paksa aku mas`)
+                msg.reply(`error`)
               }
             })
             .catch((err) => {
               console.log(error);
-              msg.reply(`Aku gk mau buatin, jangan paksa aku mas`)
+              msg.reply(`error`)
             });
         })();
       } catch(err) {
