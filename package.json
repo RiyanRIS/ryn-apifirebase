@@ -12,7 +12,7 @@
     "node": "12.16.1"
   },
   "keywords": [],
-  "author": "",
+  "author": "riyan",
   "license": "ISC",
   "dependencies": {
     "@adiwajshing/baileys": "^3.5.2",

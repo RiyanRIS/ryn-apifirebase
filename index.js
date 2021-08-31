@@ -11,22 +11,6 @@ const { carbon } = require('./function/carbon')
 const { qrcode } = require('./function/qrcode')
 const { twd } = require('./function/twd')
 
-const express = require('express')
-const app = express()
-const port = 3000
-
-app.get('/', (req, res) => {
-  res.send('Sayang banget sama kamu!')
-})
-
-app.get('/public', (req, res) => {
-  res.send('Sayang banget sama kamu!')
-})
-
-app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`)
-})
-
 wa_konek.sambungkan()
 const conn = wa_konek.koneksi
 
@@ -96,6 +80,5 @@ conn.on('chat-update', async(cb) => {
     }
 
   }
-  
 })
 
