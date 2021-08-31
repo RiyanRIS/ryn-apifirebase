@@ -1,18 +1,11 @@
 const axios = require('axios')
-const { MessageMedia } = require('whatsapp-web.js')
+const wa = require('../lib/wa')
 
-const carbon = async (client, msg, args) => {
-  var text
-
-  if(msg.hasQuotedMsg){
-    var quotedMsg = await msg.getQuotedMessage()
-    text = quotedMsg.body
-  }else{
-    text = msg.body.replace("!carbon ", "")
-  }
+const carbon = async (sender, args, msg, b) => {
+  const text = b.replace("!carbon ", "")
 
   // Special thanks to Sumanjay for his carbon api
-  var respoimage = await axios({
+  const respoimage = await axios({
     method: 'post',
     url: 'https://carbonara.vercel.app/api/cook',
     data: {
@@ -22,10 +15,11 @@ const carbon = async (client, msg, args) => {
   })
 
   try {
-    client.sendMessage(msg.from, new MessageMedia("image/png", Buffer.from(respoimage.data).toString('base64'),"carbon.png"), { caption: `Hasil untuk 👇\n` + "```" + text + "```" })
+    await wa.sendImage(sender, Buffer.from(respoimage.data), `Hasil untuk 👇\n` + "```" + text + "```")
   } catch (error) {
-    msg.reply(`*⛔ Maaf*\n\n` + "```Terjadi kesalahann pada saat memproses data.```")
+    await wa.reply(sender, `*⛔ Maaf*\n\n` + "```Terjadi kesalahann pada saat memproses data.```", msg)
   }
+  return
   
 }
 
