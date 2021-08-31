@@ -11,6 +11,14 @@ const { carbon } = require('./function/carbon')
 const { qrcode } = require('./function/qrcode')
 const { twd } = require('./function/twd')
 
+const server = express()
+const port = process.env.PORT || 8000;
+server.get('/', (req, res) => {res.send('server running...')})
+server.listen(port, () => {
+    console.clear()
+    console.log('\nWeb-server running!\n')
+})
+
 wa_konek.sambungkan()
 const conn = wa_konek.koneksi
 
