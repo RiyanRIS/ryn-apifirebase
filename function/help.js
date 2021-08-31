@@ -1,10 +1,10 @@
-const { MessageMedia } = require('whatsapp-web.js')
+const wa = require('../lib/wa')
+const { readFileSync } = require('fs')
 
-const help = async (client, msg, args) => {
+const help = async (sender, args, msg, b) => {
     const commands = `
 🎀 *RiyanBot* 🎀\n
 \n
-🔥 *!carbon* - _Membuat kode/kalimat jadi gambar keren_\n
 🔥 *!ytmp3* - _Download lagu dari YouTube_\n
 🔥 *!ytmp4* - _Download video dari YouTube_\n
 🔥 *!y2mp3* - _Download lagu dari YouTube(server y2mate)_\n
@@ -15,15 +15,26 @@ const help = async (client, msg, args) => {
 \n
 *!help [PERINTAH]* - Untuk melihat detail perintah yang tersedia`
 
-    if (msg.body.startsWith("!help ")) {
-        if (args[0] == "ytmp3") {
-            msg.reply(`*YouTube to Mp3*\n\nDownload lagu dari YouTube.\n\n*!yt [Link-YouTube]*`)
+    if (b.startsWith("!help ")) {
+        if (args[0] == "ytmp3" || args[0] == "!ytmp3") {
+            await wa.reply(sender, `*YouTube to Mp3*\n\nDownload audio dari YouTube menggunakan library node-ytdl-core.\n\n*!ytmp3 [Link-YouTube]*`)
+            return
         }
 
-        if (param == "ytmp3") {
-            msg.reply(`*YouTube to Mp3*\n\nDownload musik dari link youtube.\n\n*!yt [Link-YouTube]*\natau,\nTag pesan dengan menyertakan *!yt* untuk mentriger`)
+        if (args[0] == "ytmp4" || args[0] == "!ytmp4") {
+            await wa.reply(sender, `*YouTube to Mp3*\n\nDownload video dari YouTube menggunakan library node-ytdl-core.\n\n*!ytmp4 [Link-YouTube]*`)
+            return
         }
-        
+
+        if (args[0] == "ocr" || args[0] == "!ocr") {
+            try {
+                await wa.sendImage(sender, readFileSync("./src/ocr.jpg"), `*Optical Character Recognition*\n\nPengenalan karakter optik dapat mengubah gambar menjadi teks. Cukup dengan memberi caption _*!ocr*_ pada gambar yang ingin discan.`)
+            } catch (error) {
+                console.error(error)
+            }
+            return
+        }
+
         if (param == "carbon") {
             msg.reply(`*Carbon*\n\nGenerate gambar keren dengan carbon.now.sh. Kirim teks yang ingin kamu jadikan gambar.\n\n*!carbon [Text]*\natau,\nTag pesan dengan menyertakan *!carbon* untuk mentriger`)
         }

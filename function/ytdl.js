@@ -31,11 +31,17 @@ async function ytmp3(sender, args, msg) {
     let stats = statSync(path)
     let url_download = config.url + "/public/"+ filename
 
-    await wa.reply(sender, `*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n*Link:* ${await shortlink(url_download)}`, msg)
-
     if(stats.size < 29999999){ // jika ukuran file kurang dari 30 mb
-      const musiknya = readFileSync(path)
-      await wa.sendAudio(sender, musiknya)
+      await wa.reply(sender, `*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n_kami mencoba mengirimkanya ke anda_`, msg)
+      try {
+        const musiknya = readFileSync(path)
+        await wa.sendAudio(sender, musiknya)
+      } catch (e) {
+        console.error(e)
+        await wa.reply(sender, `*⛔ Maaf*\n\nTerjadi kesalahan saat mengirimkan file, anda dapat mengunduhnya secara manual melalui link berikut.\n\n${await shortlink(url_download)}`, msg)
+      }
+    } else {
+      await wa.reply(sender, `*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n*Link:* ${await shortlink(url_download)}`, msg)
     }
   });
 
@@ -70,11 +76,18 @@ async function ytmp4(sender, args, msg) {
     let stats = statSync(path)
     let url_download = config.url + "/public/"+ filename
 
-    await wa.reply(sender, `*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n*Link:* ${await shortlink(url_download)}`, msg)
-
-    if(stats.size < 29999999){ // jika ukuran file kurang dari 30 mb
-      const videonya = readFileSync(path)
-      await wa.sendVideo(sender, videonya)
+    if(stats.size < 79999999){ // jika ukuran file kurang dari 80 mb || batas max whatsapp
+      await wa.reply(sender, `*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n_kami mencoba mengirimkanya ke anda_`, msg)
+      try {
+        const videonya = readFileSync(path)
+        await wa.sendVideo(sender, videonya)
+      } catch (error) {
+        console.error(error)
+        await wa.reply(sender, `*⛔ Maaf*\n\nTerjadi kesalahan saat mengirimkan file, anda dapat mengunduhnya secara manual melalui link berikut.\n\n${await shortlink(url_download)}`, msg)
+        
+      }
+    } else {
+      await wa.reply(sender, `*🙇‍♂️ Berhasil*\n\n*Judul:* ${info.videoDetails.title}\n*Size:* ${formatBytes(stats.size)}\n\n*Link:* ${await shortlink(url_download)}`, msg)
     }
   });
 

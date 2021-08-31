@@ -3,8 +3,10 @@ const exec = require("child_process").exec
 const wa = require('../lib/wa')
 const log = console.debug
 
-const ocr = async (sender, args, msg) => {
-  const media = JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo
+const ocr = async (sender, args, msg, isQuotedImage, isMedia) => {
+  if ((isMedia && !msg.message.videoMessage || isQuotedImage) && args.length == 0) {
+  }
+  const media = isQuotedImage ? JSON.parse(JSON.stringify(msg).replace('quotedM','m')).message.extendedTextMessage.contextInfo : msg
   const hasil = await wa.downloadMedia(media)
 
   await recognize(hasil.filepath, {lang: 'eng+ind', oem: 1, psm: 3})

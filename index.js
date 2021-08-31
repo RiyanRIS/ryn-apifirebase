@@ -4,6 +4,7 @@ const wa_konek = require("./lib/connect")
 const wa = require("./lib/wa")
 
 // Function
+const { help } = require('./function/help')
 const { ytmp3, ytmp4 } = require('./function/ytdl')
 const { ocr } = require('./function/ocr')
 
@@ -19,6 +20,12 @@ conn.on('chat-update', async(cb) => {
   const args = b.trim().split(/ +/).slice(1)
   const sender = msg.key.remoteJid
   const isGroup = sender.endsWith('@g.us')
+  const content = JSON.stringify(msg.message)
+  const isMedia = (type === 'imageMessage' || type === 'videoMessage')
+  const isQuotedAudio = type === 'extendedTextMessage' && content.includes('audioMessage')
+  const isQuotedImage = type === 'extendedTextMessage' && content.includes('imageMessage')
+  const isQuotedVideo = type === 'extendedTextMessage' && content.includes('videoMessage')
+  const isQuotedSticker = type === 'extendedTextMessage' && content.includes('stickerMessage')
 
   if(isGroup){ // Jika group chat
     const groupMetadata = await conn.groupMetadata(sender)
@@ -39,7 +46,12 @@ conn.on('chat-update', async(cb) => {
     }
 
     if (b.startsWith('!ocr')) {
-      await ocr(sender, args, msg)
+      await ocr(sender, args, msg, isQuotedImage, isMedia)
+      return
+    }
+
+    if (b.startsWith('!help')) {
+      await help(sender, args, msg, b)
       return
     }
 
