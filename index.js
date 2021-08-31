@@ -11,6 +11,7 @@ const { carbon } = require('./function/carbon')
 const { qrcode } = require('./function/qrcode')
 const { twd } = require('./function/twd')
 
+const express = require('express')
 const server = express()
 const port = process.env.PORT || 8000;
 server.get('/', (req, res) => {res.send('server running...')})
