@@ -7,6 +7,7 @@ const help = async (sender, args, msg, b) => {
 \n
 🔥 *!ytmp3* - _Download lagu dari YouTube_\n
 🔥 *!ytmp4* - _Download video dari YouTube_\n
+🔥 *!twd* - _Twitter Video Downloader_\n
 🔥 *!ocr* - _Mengubah gambar menjadi teks_\n
 🔥 *!carbon* - _Mengubah teks menjadi gambar keren_\n
 🔥 *!qr* - _Membuat QR kode dari text tertentu_\n
@@ -23,6 +24,11 @@ const help = async (sender, args, msg, b) => {
 
         if (args[0] == "ytmp4" || args[0] == "!ytmp4") {
             await wa.reply(sender, `*YouTube to Mp3*\n\nDownload video dari YouTube menggunakan library node-ytdl-core.\n\n*!ytmp4 [Link-YouTube]*`)
+            return
+        }
+
+        if (args[0] == "twd" || args[0] == "!twd") {
+            await wa.reply(sender, `*Twitter Video Downloader*\n\nDownload video dari Twitter melalui savefrom.net.\n\n*!twd [Link-Twitter]*`)
             return
         }
 
